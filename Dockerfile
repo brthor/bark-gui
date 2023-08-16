@@ -1,7 +1,9 @@
-FROM debian:stable
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
-# Install system packages
-RUN apt update && apt install -y git pip
+ENV LD_LIBRARY_PATH=/usr/local/cuda/efa/lib:/usr/local/cuda/lib:/usr/local/cuda/lib64:/usr/local/cuda:/usr/lib/x86_64-linux-gnu
+
+RUN apt update && apt install -qqy python3 python3-virtualenv python3-dev \
+    build-essential python3-pip git vim nano wget curl git-lfs ffmpeg
 
 # Create non-root user
 RUN useradd -m -d /bark bark
@@ -26,10 +28,21 @@ RUN pip install -r requirements.txt
 # List on all addresses, since we are in a container.
 RUN sed -i "s/server_name: ''/server_name: 0.0.0.0/g" ./config.yaml
 
-# Suggested volumes
+# Suggested volumes, mkdir here to ensure correct permissions
+RUN mkdir -p /bark/bark-gui/assets/prompts/custom
+RUN mkdir -p /bark/bark-gui/models
+RUN mkdir -p /bark/.cache/huggingface/hub
+
 VOLUME /bark/bark-gui/assets/prompts/custom
 VOLUME /bark/bark-gui/models
 VOLUME /bark/.cache/huggingface/hub
+
+# make volumes available to the user
+USER root
+RUN chown -R bark:bark /bark/bark-gui/assets/prompts/custom
+RUN chown -R bark:bark /bark/bark-gui/models
+RUN chown -R bark:bark /bark/.cache/huggingface/hub
+USER bark
 
 # Default port for web-ui
 EXPOSE 7860/tcp
