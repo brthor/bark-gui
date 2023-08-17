@@ -58,10 +58,8 @@ class CustomHubert(nn.Module):
         assert model_path.exists(), f'path {checkpoint_path} does not exist'
 
         print(f"Loading Hubert {checkpoint_path}")
-        checkpoint = torch.load(checkpoint_path)
-        load_model_input = {checkpoint_path: checkpoint}
 
-        with open(local_path, "rb") as f:
+        with open(checkpoint_path, "rb") as f:
             state = torch.load(f, map_location=torch.device("cpu"))
             
         model, *_ = fairseq.checkpoint_utils.load_model_ensemble_and_task([], state=state)
