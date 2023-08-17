@@ -60,7 +60,11 @@ class CustomHubert(nn.Module):
         print(f"Loading Hubert {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path)
         load_model_input = {checkpoint_path: checkpoint}
-        model, *_ = fairseq.checkpoint_utils.load_model_ensemble_and_task(load_model_input)
+
+        with open(local_path, "rb") as f:
+            state = torch.load(f, map_location=torch.device("cpu"))
+            
+        model, *_ = fairseq.checkpoint_utils.load_model_ensemble_and_task([], state=state)
 
         if device is not None:
             model[0].to(device)
